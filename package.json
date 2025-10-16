@@ -1,0 +1,86 @@
+{
+  "name": "new-tumblr-t3",
+  "private": true,
+  "version": "0.10.3",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\" --names \"SERVER,CLIENT\" --prefix-colors \"bgBlue,bgGreen\"",
+    "client": "vite",
+    "server": "tsx watch server/index.ts",
+    "build": "tsc && vite build",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css,md}\"",
+    "test": "vitest",
+    "test:e2e": "playwright test",
+    "prepare": "husky install",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:reset": "prisma migrate reset --force",
+    "db:studio": "prisma studio",
+    "deploy:render": "git push && echo 'Deployed to Render via Git'",
+    "deploy:railway": "railway up",
+    "deploy:fly": "fly deploy",
+    "deploy:docker": "docker-compose up -d --build",
+    "start:prod": "NODE_ENV=production node server/index.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,md,json}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "@storybook/react": "^7.6.20",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@vitejs/plugin-react": "^5.0.4",
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^9.2.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
+    "playwright": "^1.56.0",
+    "postcss": "^8.5.6",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.6",
+    "vite": "^5.4.20",
+    "vitest": "^1.6.1"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.17.1",
+    "@tanstack/query-sync-storage-persister": "^5.90.5",
+    "@tanstack/react-query": "^5.90.2",
+    "@tanstack/react-query-persist-client": "^5.90.5",
+    "@tanstack/react-router": "^1.132.47",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.1",
+    "@use-gesture/react": "^10.3.1",
+    "bcryptjs": "^3.0.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cors": "^2.8.5",
+    "date-fns": "^2.30.0",
+    "express": "^5.1.0",
+    "framer-motion": "^10.18.0",
+    "jotai": "^2.15.0",
+    "minisearch": "^6.3.0",
+    "prisma": "^6.17.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sharp": "^0.32.6",
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss": "^3.4.18",
+    "workbox-window": "^7.3.0",
+    "zod": "^3.25.76"
+  }
+}

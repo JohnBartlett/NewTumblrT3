@@ -1,0 +1,199 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+model User {
+  id                    String    @id @default(uuid())
+  email                 String    @unique
+  username              String    @unique
+  passwordHash          String
+  displayName           String?
+  avatar                String?
+  bio                   String?
+  role                  UserRole  @default(USER)
+  emailVerified         Boolean   @default(false)
+  emailVerificationToken String?  @unique
+  passwordResetToken    String?   @unique
+  passwordResetExpiry   DateTime?
+  lastLoginAt           DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  // Relations
+  preferences   UserPreferences?
+  savedPosts    SavedPost[]
+  likedPosts    LikedPost[]
+  following     Follow[]         @relation("UserFollows")
+  followers     Follow[]         @relation("UserFollowers")
+  posts         Post[]
+  drafts        Draft[]
+  searchHistory SearchHistory[]
+  blogs         Blog[]
+  storedImages  StoredImage[]
+  
+  @@index([email])
+  @@index([username])
+  @@index([emailVerificationToken])
+  @@index([passwordResetToken])
+}
+
+model UserPreferences {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  theme           String   @default("system") // light, dark, system
+  fontSize        Int      @default(16)
+  reducedMotion   Boolean  @default(false)
+  enableHaptics   Boolean  @default(true)
+  enableGestures  Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // text, photo, quote, link, video, audio
+  content   String
+  tags      String   // JSON array stored as string
+  timestamp DateTime @default(now())
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  savedBy    SavedPost[]
+  likedBy    LikedPost[]
+  
+  @@index([userId])
+  @@index([timestamp])
+  @@index([published])
+}
+
+model Draft {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  content   String
+  tags      String   // JSON array stored as string
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+model SavedPost {
+  id        String   @id @default(uuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+}
+
+model LikedPost {
+  id        String   @id @default(uuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  
+  follower  User @relation("UserFollows", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+  
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model SearchHistory {
+  id        String   @id @default(uuid())
+  userId    String
+  query     String
+  type      String   // tag, text, user
+  createdAt DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Blog {
+  id          String   @id @default(uuid())
+  userId      String
+  name        String   @unique
+  title       String
+  description String
+  url         String
+  avatar      String?
+  headerImage String?
+  theme       String   @default("default")
+  posts       Int      @default(0)
+  followers   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([name])
+}
+
+model StoredImage {
+  id          String   @id @default(uuid())
+  userId      String
+  postId      String   // Original post ID from Tumblr
+  blogName    String
+  url         String   // Image URL
+  width       Int?
+  height      Int?
+  tags        String   // JSON array of tags
+  description String?
+  notes       Int      @default(0)
+  timestamp   DateTime // Original post timestamp
+  storedAt    DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([blogName])
+  @@index([storedAt])
+  @@index([timestamp])
+}
